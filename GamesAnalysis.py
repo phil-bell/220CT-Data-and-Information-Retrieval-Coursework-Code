@@ -315,9 +315,45 @@ def mostCommonItem(numToList):
 Finds what items have the highers win rate, ignores trinkets becuase everone gets them
 """
 def highestWinRateItem():
-	onlyWinners = []
-	onlyLoosers = []
-
+	winningItems = []
+	loosingItems = []
+	items = db.games.find({"matchMode":"CLASSIC"},{"participants.stats":1,"_id":0})
+	for i in items:
+		a = 0
+		while a<9:
+			if i['participants'][a]['stats']['winner'] == True:
+				if i['participants'][a]['stats']['item0'] != 0:
+					winningItems.append(i['participants'][a]['stats']['item0'])
+				if i['participants'][a]['stats']['item1'] != 0:
+					winningItems.append(i['participants'][a]['stats']['item1'])
+				if i['participants'][a]['stats']['item2'] != 0:
+					winningItems.append(i['participants'][a]['stats']['item2'])
+				if i['participants'][a]['stats']['item3'] != 0:
+					winningItems.append(i['participants'][a]['stats']['item3'])
+				if i['participants'][a]['stats']['item4'] != 0:
+					winningItems.append(i['participants'][a]['stats']['item4'])
+				if i['participants'][a]['stats']['item5'] != 0:
+					winningItems.append(i['participants'][a]['stats']['item5'])
+			else:
+				if i['participants'][a]['stats']['item0'] != 0:
+					loosingItems.append(i['participants'][a]['stats']['item0'])
+				if i['participants'][a]['stats']['item1'] != 0:
+					loosingItems.append(i['participants'][a]['stats']['item1'])
+				if i['participants'][a]['stats']['item2'] != 0:
+					loosingItems.append(i['participants'][a]['stats']['item2'])
+				if i['participants'][a]['stats']['item3'] != 0:
+					loosingItems.append(i['participants'][a]['stats']['item3'])
+				if i['participants'][a]['stats']['item4'] != 0:
+					loosingItems.append(i['participants'][a]['stats']['item4'])
+				if i['participants'][a]['stats']['item5'] != 0:
+					loosingItems.append(i['participants'][a]['stats']['item5'])
+			a += 1
+	bestItems = findMostCommon(winningItems,6)
+	worstItems = findMostCommon(loosingItems,6)
+	print bestItems
+	print worstItems
+	
+	
 """
 This function will compare the is the winning team was the first to do something, eg did the winning team get first blood, it must be handed the DB locations, objective name and bool for printing out data
 can be handed:
@@ -398,25 +434,46 @@ def wardBoughtTrend():
 			else:
 				loosingTeamWards = loosingTeamWards + i['participants'][a]['stats']['sightWardsBoughtInGame'] + i['participants'][a]['stats']['visionWardsBoughtInGame']
 			a += 1
-		listToOutput.append(winningTeamAvg)
-		listToOutput.append(loosingTeamAvg)
-		winningTeamAvg = winningTeamWards/1000.0
-		loosingTeamAvg = loosingTeamWards/1000.0
-		if winningTeamAvg > loosingTeamAvg:
-			listToOutput.append(True)
-			return listToOutput
-		elif loosingTeamAvg > winningTeamAvg:
-			listToOutput.append(False)
-			return listToOutput
-		else:
-			return "There is no difference" #this is very unlikely to happen 
+	winningTeamAvg = winningTeamWards/1000.0
+	loosingTeamAvg = loosingTeamWards/1000.0
+	#print winningTeamWards
+	#print loosingTeamWards
+	#print winningTeamAvg
+	#print loosingTeamAvg
+	listToOutput.append(winningTeamAvg)
+	listToOutput.append(loosingTeamAvg)
+	if winningTeamAvg > loosingTeamAvg:
+		listToOutput.append(True)
+		return listToOutput
+	elif loosingTeamAvg > winningTeamAvg:
+		listToOutput.append(False)
+		return listToOutput
+	else:
+		return "There is no difference" #this is very unlikely to happen 
 
 
 """
-this functions if the team with the most towers normally win
+this functions if the team with the most towers normally win. It returns a list:
+1st value is the avg winning team towers
+2nd value is the avg loosing team towers
+3rd value is a bool, True if winners get more towers, False if loosers get mroe towers
 """
 def mostTowersWin():
-	print ""
+	winningTeamTowers = 0
+	loosingTeamTowers = 0
+	listToReturn = []
+	towers = db.games.find({"matchMode":"CLASSIC"},{"teams.winner":1,"teams.towerKills":1,"_id":0})
+	for i in towers:
+		if i['teams'][0]['winner'] == True:
+			winningTeamTowers = winningTeamTowers + i['teams'][0]['towerKills']
+			loosingTeamTowers = loosingTeamTowers + i['teams'][1]['towerKills']
+		else:
+			winningTeamTowers = winningTeamTowers + i['teams'][1]['towerKills']
+			loosingTeamTowers = loosingTeamTowers + i['teams'][0]['towerKills']
+	if winningTeamTowers>loosingTeamTowers:
+		listToReturn.append(winningTeamTowers/1000.0,loosingTeamTowers/1000.0,True)
+	else:
+		listToReturn.append(winningTeamTowers/1000.0,loosingTeamTowers/1000.0,False)
 
 """
 adds up CS difference and finds out if winning teams had more CS
@@ -443,7 +500,7 @@ def displayData():
 	print ""	
 
 
-wardBoughtTrend()
+mostTowersWin()
 
 client.close()
 
