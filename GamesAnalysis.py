@@ -19,11 +19,7 @@ def returnAllWinners():
 	gameResult = db.games.find({"teams.winner":True},{"matchId":1,"teams.winner":1,})
 
 	for i in gameResult:
-		print i['matchId']
-		j = i['teams']
-		k = j[0]
-		l = j[1]
-		if k['winner'] == True:
+		if i['teams'][0]['winner'] == True:
 			print "Winner: Team 1"
 		else:
 			print "Winner: Team 2"
@@ -34,9 +30,7 @@ This functions takes a matchId as a paramerter then returns which team won.
 def getGameResult(matchId):
 	gameResult = db.games.find({"matchId":matchId},{"teams.winner":1})
 	for i in gameResult:
-		j = i['teams']
-		k = j[0]
-		if k['winner'] == True:
+		if i['teams'][0]['winner'] == True:
 			return "Team 1"
 		else:
 			return "Team 2"
@@ -52,16 +46,10 @@ def getPlayerWin(matchId,playerId):
 	a=0
 	b=0
 	for i in playerWinDict:
-		j = i['participants']
-		k = j[a]
-		l = k['stats']
-		winsToRetrun.append(l['winner'])
+		winsToRetrun.append(i['participants'][a]['stats']['winner'])
 		a += 1
 	for i in playerIdDict:
-		j = i ['participantIdentities']	
-		k = j[b]
-		l = k['player']
-		playerToReturn.append(l['summonerId'])
+		playerToReturn.append(i['participantIdentities'][b]['player']['summonerId'])
 	for i in range(len(playerToReturn)):
 		return playerToReturn[i],winsToRetrun[i]
 
@@ -77,18 +65,10 @@ def getPlayerCsDiff(playerId):
 		)
 		
 	for i in playersCsDiff:
-		j = i['participantIdentities']
 		for a in range(0,10):
-			k = j[a]
-			l = k['player']
-			listOfSummoners.append(l['summonerId'])
-		j = i['participants']
+			listOfSummoners.append(i['participantIdentities'][a]['player']['summonerId'])
 		for b in range(0,10):
-			k = j[b]
-			l = k['timeline']
-			m = l['csDiffPerMinDeltas']
-			listOfCsDiff.append(m)
-		
+			listOfCsDiff.append(i['participants'][b]['timeline']['csDiffPerMinDeltas'])
 		for i in range(len(listOfSummoners)):
 			print listOfSummoners[i]
 			j = listOfCsDiff[i]
@@ -105,7 +85,7 @@ def getPlayerCsDiff(playerId):
 			try:
 				print j['thirtyToEnd']
 			except KeyError:
-				pas
+				pass
 			divider(50)
 
 """
@@ -113,16 +93,10 @@ this function retrun what position in the list a player is, this is needed beaus
 """
 def getPlayerListNum(playerId):
 	playerListNum = db.games.find({"participantIdentities.player.summonerId":playerId},{"participantIdentities.player.summonerId":1,"_id":0})
-	
 	for i in playerListNum:
-		j = i['participantIdentities']
 		a=0
-		
-		for a in range(0,(len(j))):
-			k = j[a]
-			l = k['player']
-			#print l['summonerId']
-			if l['summonerId'] == playerId:
+		for a in range(0,9):
+			if i['participantIdentities'][a]['player']['summonerId'] == playerId:
 				return a
 			a += 1
 
@@ -132,13 +106,8 @@ This function takes a players Id then calls the getPlayerListNum to get its posi
 def getPlayerDmg(playerId):
 	playerDmg = db.games.find({"participantIdentities.player.summonerId":playerId},{"participants.stats.totalDamageDealtToChampions":1,"_id":0})
 	playListNum = getPlayerListNum(playerId)
-	#print playListNum
 	for i in playerDmg:
-		j = i['participants']
-		k = j[playListNum]
-		m = k['stats']
-		#print m['totalDamageDealtToChampions']
-		return m['totalDamageDealtToChampions']
+		return i['participants'][playListNum]['stats']['totalDamageDealtToChampions']
 
 """
 This function will return a players estimated position (TOP/MID/DUO_SUPPORT/DUO_CARRY)
@@ -147,11 +116,7 @@ def getPlayerPos(playerId):
 	playerPos = db.games.find({"participantIdentities.player.summonerId":playerId},{"participants.timeline.role":1,"_id":0})
 	pListNum = getPlayerListNum(playerId)
 	for i in playerPos:
-		j = i['participants']
-		k = j[pListNum]
-		l = k['timeline']
-		print l['role']
-
+		return i['participants'][pListNum]['timeline']['role']
 	
 	
 """
@@ -161,56 +126,49 @@ def getAllPlayerStats(playerId,printOut):
 	playerStat = db.games.find({"participantIdentities.player.summonerId":playerId},{"participants.stats":1,"_id":0})
 	pListNum = getPlayerListNum(playerId)
 	for i in playerStat:
-		j = i['participants'] 
-		k = j[pListNum]
-		l = k['stats']
 		if printOut == True:
-			for a, b in l.items():
+			j = i['participants'][pListNum]['stats']
+			for a, b in j.items():
 				print a,":",b
 			divider(50)
-		return l
+		return i['participants'][pListNum]['stats']
 
 """
-This function will return the average player damage for each position, it must be handed the desired postion(TOP/MID/DUO_SUPPORT/DUO_CARRY).
+This function will return the average player damage for each position, it must be handed the desired postion(TOP/MID/DUO_SUPPORT/DUO_CARRY). ##THIS IS NOT FINHSED##
 """
 def getPlayerAvgDmg(pos,outputDmgList):
 	listToAvg = []
 	allPlayerDmg = db.games.find({"participants.timeline.role":pos},{"participants.stats.totalDamageDealtToChampions":1,"_id":0})
 	for i in allPlayerDmg:
-		j = i['participants']
-		k = j[0]
-		l = k['stats']
-		for a,b in l.items():
+		j = i['participants'][0]['stats']
+		for a,b in j.items():
 			if outputDmgList == True:
 				print a,":",b
 			listToAvg.append(b)
-		
 	#print len(listToAvg)
 	avg = 0
-
 	for x in range(0,(len(listToAvg))):
 		avg = avg + listToAvg[x]
 	avg = avg/(len(listToAvg))
 	return avg
-	print "not finished"""
 
 """
-This function will return the averge gold for each position. must be handed desired position 
+This function will return the averge gold for each position. 
 """
-def getPlayerAvgGold(pos,outputGoldList):
+def getPlayerAvgGold(outputGoldList):
 	listToAvg = []
-	allPlayerDmg = db.games.find({"participants.timeline.role":pos},{"participants.stats.goldEarned":1,"_id":0})
+	allPlayerDmg = db.games.find({"matchMode":"CLASSIC"},{"participants.stats.goldEarned":1,"_id":0})
 	for i in allPlayerDmg:
-		j = i['participants']
-		k = j[0]
-		l = k['stats']
-		for a,b in l.items():
-			if outputGoldList == True:
-				print a,":",b
-			listToAvg.append(b)
-	#print len(listToAvg)
+		y = 0
+		for y in range(0,10):
+			j = i['participants'][y]['stats']
+			for a,b in j.items():
+				if outputGoldList == True:
+					print a,":",b
+				listToAvg.append(b)
+			y += 1
+	print len(listToAvg)
 	avg = 0
-
 	for x in range(0,(len(listToAvg))):
 		avg = avg + listToAvg[x]
 	avg = avg/(len(listToAvg))
@@ -224,12 +182,10 @@ def getChampions(printChamps):
 	champs = db.games.find({"matchMode":"CLASSIC"},{"participants.championId":1,"_id":0})
 	a = 0
 	for i in champs:
-		j = i['participants']
 		while a<10:
-			k = j[a] 
 			if printChamps == True:
-				print k['championId']
-			listToOutput.append(k['championId'])
+				print i['participants'][a]['championId']
+			listToOutput.append(i['participants'][a]['championId'])
 			#print a
 			a += 1
 		if a>9:
@@ -245,12 +201,8 @@ def getWinList():
 	winsList = []
 	a = 0
 	for i in wins:
-		j = i['participants']
 		while a<10:
-			k = j[a]
-			l = k['stats']
-			m = l['winner']
-			winsList.append(m)
+			winsList.append(i['participants'][a]['stats']['winner'])
 			a += 1
 		if a>9:
 			a = 0
@@ -265,16 +217,6 @@ def mostCommonChamp():
 	champs = getChampions(False)
 	toReturn = findMostCommon(champs,1)
 	return toReturn
-	"""
-	champCount = {}
-	for champ in champs:
-		if champ in champCount:
-			champCount[champ] += 1
-		else:
-			champCount[champ] = 1
-	mostPopchamp = sorted(champCount, key = champCount.get, reverse = True)
-	return mostPopchamp[:1]
-	print """
 
 """
 This will return a list of all the playerId in all the games
@@ -284,13 +226,8 @@ def getPlayerId():
 	players = db.games.find({"matchMode":"CLASSIC"},{"participantIdentities.player.summonerId":1,"_id":0})
 	a = 0
 	for i in players:
-		j = i['participantIdentities']
 		while a<10:
-			k = j[a]
-			l = k['player']
-			m = l['summonerId']
-			#print m
-			listOfPlayers.append(m)
+			listOfPlayers.append(i['participantIdentities'][a]['player']['summonerId'])
 			a += 1
 		if a>9:
 			a = 0
@@ -308,7 +245,6 @@ def findMostCommon(listToUse,numToOutput):
 			a[i] = 1
 	mostCommon = sorted(a, key = a.get, reverse = True)
 	return mostCommon[:numToOutput]	
-	print""	
 	
 """
 This funciton will return the highest win rate champion, if "returnLooser" is True then it will retrun the most common looser instead of the winner. (will return a list)
@@ -337,21 +273,18 @@ This function will return a list with all the items bought in the all the games
 """
 def getItems(printItems):
 	listToOutput = []
-	item0 = db.games.find({"matchMode":"CLASSIC"},{"participants.stats":1,"_id":0})
-		
+	item0 = db.games.find({"matchMode":"CLASSIC"},{"participants.stats":1,"_id":0})	
 	a = 0
 	for i in item0:
-		j = i['participants']
 		while a<10:
-			k = j[a]
-			l = k['stats']
+			l = i['participants'][a]['stats']
 			if printItems == True:
 				print "item 0: ",l['item0']
 				print "item 1: ",l['item1']
 				print "item 2: ",l['item2']
 				print "item 3: ",l['item3']
 				print "item 4: ",l['item4']
-				print "item 5: ",l['item5']
+				print "item 5: ",l['item5']	
 			if l['item0'] != 0:
 				listToOutput.append(l['item0'])
 			if l['item1'] != 0:
@@ -379,82 +312,138 @@ def mostCommonItem(numToList):
 	return mostCommon
 	
 """
-
+Finds what items have the highers win rate, ignores trinkets becuase everone gets them
 """
 def highestWinRateItem():
 	onlyWinners = []
 	onlyLoosers = []
-	
+
 """
-This function will find out if the team that gets first blood wins (this can then be used to see if getting first and winning is a trend)
+This function will compare the is the winning team was the first to do something, eg did the winning team get first blood, it must be handed the DB locations, objective name and bool for printing out data
+can be handed:
+"teams.firstBlood","firstBlood",False
+"teams.firstBaron","firstBaron",False
+"teams.firstDragon","firstDragon",False
+"teams.firsTower","firstTower",False
+"teams.firstInhibitor","firstInhibitor",False
 """
-def firstBloodWin(outputTF):
+def firstObjectiveTemplate(obLoc,ob,outputTF):
 	listWinners = []
-	listFirstBloods =[]
-	firstBlood = db.games.find({"matchMode":"CLASSIC"},{"teams.firstBlood":1,"teams.winner":1,"_id":0})
+	listObs =[]
+	firstBlood = db.games.find({"matchMode":"CLASSIC"},{obLoc:1,"teams.winner":1,"_id":0})
 	for i in firstBlood:
-		j = i['teams']
-		k = j[0]
-		l = k['winner']
-		m = k['firstBlood']
-		n = j[1]
-		o = n['winner']
-		p = n['firstBlood']
 		if outputTF == True:
-			print "Win Team1:        ",l
-			print "FirstBlood Team1: ",m
-			print "Win Team 2:       ",o
-			print "FirstBlood Team2 :",p
-		listWinners.append(l)
-		listFirstBloods.append(m)
-		listWinners.append(o)
-		listFirstBloods.append(p)
-	return listFirstBloods,listWinners
-		
-
-"""
-This function will find out if the team that gets first baron wins (this can then be used to see if getting first and winning is a trend)
-"""
-def firstBaronWin():
-	print ""
-	#test
-
-"""
-This function will find out if the team that gets first dragon wins (this can then be used to see if getting first and winning is a trend)
-"""	
-def firstDragonWin():
-	print ""
-
-"""
-This function will find out if the team that gets first tower wins (this can then be used to see if getting first and winning is a trend)
-"""	
-def firstTowerWin():
-	print ""
-
-"""
-This function will compare winnign teams towers to loosing team towers, does winnign team normally have more towers?
-"""
-def winTeamTower():
-	print ""	
+			print "Win Team1: ",i['teams'][0]['winner']
+			print ob," Team1: ",i['teams'][0][ob]
+			print "Win Team 2: ",i['teams'][1]['winner']
+			print ob," Team2 :",i['teams'][1][ob]
+		listWinners.append(i['teams'][0]['winner'])
+		listObs.append(i['teams'][0][ob])
+		listWinners.append(i['teams'][1]['winner'])
+		listObs.append(i['teams'][1][ob])
+	#print len(listWinners)
+	#print len(listFirstBloods)
+	totalWinObTrue = 0
+	totalWinObFalse = 0
+	for i in range(0,len(listWinners)):
+		#print listWinners[i]
+		#sprint listFirstBloods[i]
+		if listWinners[i] == True and listObs[i] == True:
+			totalWinObTrue = totalWinObTrue + 1
+		elif listWinners[i] == True and listObs[i] == False or listWinners[i] == True and listObs[i] == False:
+			totalWinObFalse = totalWinObFalse + 1
+	#print totalWinObTrue		
+	#print totalWinObFalse
+	if totalWinObTrue>totalWinObFalse:
+		return True
+	else:
+		return False	
 
 """
 This function will find what bans coralate with winning
 """
 def winningBans():
-	print ""
+	winBanList = []
+	winBan = db.games.find({"matchMode":"CLASSIC"},{"teams.winner":1,"teams.bans":1,"_id":0})
+	for i in winBan:
+		j = i['teams'][0]['winner']
+		k = i['teams'][1]['winner']
+		a = 0
+		while a<2:
+			if j == True:
+				l = i['teams'][0]['bans'][a]['championId']
+			else:
+				l = i['teams'][1]['bans'][a]['championId']
+			winBanList.append(l)
+			a +=1
+	return findMostCommon(winBanList,3)
+	
 """
-This function will show if there is a trend with how many wards winning teams bought and how many wards a loosing team bought
+This function will show if winning players place more wards then loosing players, it retruns a list:
+1nd value is the average wards placed by a winner
+2rd value is the average wards placed by a looser 
+3st value is True/False (True if winners place more wards, false is looser place more wards)
+## MIGHT NEED TO ADD SOMETHING TO EMPTY LIST "listToOutput" ##
 """
 def wardBoughtTrend():
+	winningTeamWards = 0
+	loosingTeamWards = 0
+	listToOutput = []
+	wardsPlaced = db.games.find({"matchMode":"CLASSIC"},{"participants.stats.visionWardsBoughtInGame":1,"participants.stats.sightWardsBoughtInGame":1,"participants.stats.winner":1,"teams.winner":1,"_id":0})
+	for i in wardsPlaced:
+		a = 0
+		while a<9:
+			if i['participants'][a]['stats']['winner'] == True:
+				winningTeamWards = winningTeamWards + i['participants'][a]['stats']['sightWardsBoughtInGame'] + i['participants'][a]['stats']['visionWardsBoughtInGame']
+			else:
+				loosingTeamWards = loosingTeamWards + i['participants'][a]['stats']['sightWardsBoughtInGame'] + i['participants'][a]['stats']['visionWardsBoughtInGame']
+			a += 1
+		listToOutput.append(winningTeamAvg)
+		listToOutput.append(loosingTeamAvg)
+		winningTeamAvg = winningTeamWards/1000.0
+		loosingTeamAvg = loosingTeamWards/1000.0
+		if winningTeamAvg > loosingTeamAvg:
+			listToOutput.append(True)
+			return listToOutput
+		elif loosingTeamAvg > winningTeamAvg:
+			listToOutput.append(False)
+			return listToOutput
+		else:
+			return "There is no difference" #this is very unlikely to happen 
+
+
+"""
+this functions if the team with the most towers normally win
+"""
+def mostTowersWin():
 	print ""
 
+"""
+adds up CS difference and finds out if winning teams had more CS
+"""
+def csDiffWin():
+	print ""
+
+"""
+adds up the dmg done by each team memeber to get total team dmg and finds out if the winning teams did more dmg
+"""
+def dmgDiffWin():
+	print ""
+
+"""
+adds up gold differences of each player to find team gold then finds if winning teams had more gold
+"""	
+def goldDiffWin():
+	print ""
+	
+"""
+This will display all the data in a readable fashion
+"""
+def displayData():
+	print ""	
 
 
-
-firstBloodWin()
-divider(50)
-print mostCommonItem(1)[0]
-
+wardBoughtTrend()
 
 client.close()
 
