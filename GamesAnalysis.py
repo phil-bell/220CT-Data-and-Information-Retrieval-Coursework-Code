@@ -54,40 +54,63 @@ def getPlayerWin(matchId,playerId):
 		return playerToReturn[i],winsToRetrun[i]
 
 """
-This functions is handed a playerId, it then returns the players cs different delta when compared to there dellow laner
+This functions will return total of the winners CSdelta and the total of the loosers CSDelta, returns them in a list:
+1st winners total CS delta
+2nd looser total CS delfa
 """
-def getPlayerCsDiff(playerId):
-	listOfSummoners = []
-	listOfCsDiff = []
-	playersCsDiff = db.games.find(
-		{"participantIdentities.player.summonerId":playerId},
-		{"participants.timeline.csDiffPerMinDeltas":1,"participantIdentities.player.summonerId":1,"_id":0}
-		)
-		
+def getCsDiff():
+	listToReturn = []
+	winningCS = 0
+	loosingCS = 0
+	playersCsDiff = db.games.find({"matchMode":"CLASSIC"},{"participants.timeline.csDiffPerMinDeltas":1,"participants.stats.winner":1,"_id":0})
+	
+	#for i in playersCsDiff:
+		#print i
+	b = 0
 	for i in playersCsDiff:
-		for a in range(0,10):
-			listOfSummoners.append(i['participantIdentities'][a]['player']['summonerId'])
-		for b in range(0,10):
-			listOfCsDiff.append(i['participants'][b]['timeline']['csDiffPerMinDeltas'])
-		for i in range(len(listOfSummoners)):
-			print listOfSummoners[i]
-			j = listOfCsDiff[i]
-			if j['zeroToTen'] != None:
-				print j['zeroToTen']
-			try:
-				print j['tenToTwenty']
-			except KeyError:
-				pass
-			try:
-				print j['twentyToThrity']
-			except KeyError:
-				pass
-			try:
-				print j['thirtyToEnd']
-			except KeyError:
-				pass
-			divider(50)
-
+		a = 0
+		
+		while a<10:
+			if i['participants'][a]['stats']['winner'] == True:
+				try:
+					winningCS = winningCS + i['participants'][a]['timeline']['csDiffPerMinDeltas']['zeroToTen']
+				except KeyError:
+					pass
+				try:
+					winningCS = winningCS + i['participants'][a]['timeline']['csDiffPerMinDeltas']['tenToTwenty']
+				except KeyError:
+					pass
+				try:
+					winningCS = winningCS + i['participants'][a]['timeline']['csDiffPerMinDeltas']['twentyToThrity']
+				except KeyError:
+					pass
+				try:
+					winningCS = winningCS + i['participants'][a]['timeline']['csDiffPerMinDeltas']['thirtyToEnd']
+				except KeyError:
+					pass	
+			else:
+				try:
+					loosingCS = loosingCS + i['participants'][a]['timeline']['csDiffPerMinDeltas']['zeroToTen']
+				except KeyError:
+					pass
+				try:
+					loosingCS = loosingCS + i['participants'][a]['timeline']['csDiffPerMinDeltas']['tenToTwenty']
+				except KeyError:
+					pass
+				try:
+					loosingCS = loosingCS + i['participants'][a]['timeline']['csDiffPerMinDeltas']['twentyToThrity']
+				except KeyError:
+					pass
+				try:
+					loosingCS = loosingCS + i['participants'][a]['timeline']['csDiffPerMinDeltas']['thirtyToEnd']
+				except KeyError:
+					pass
+			a += 1
+			b += 1
+	#print b
+	listToReturn.append(winningCS)
+	listToReturn.append(loosingCS)
+	return listToReturn
 """
 this function retrun what position in the list a player is, this is needed beause in the database players and there names are stored in the array participantIdentities but all the stats (champoins, CS, spells, wins/loss) is stored in the participants array so the location in the array is needed to find players stats.
 """
@@ -178,20 +201,20 @@ def getPlayerAvgGold(outputGoldList):
 gets a list of champions played by everyone, all positions. There may be an issue with the printout of Id(might be hitting output limit in python)
 """
 def getChampions(printChamps):
-	listToOutput = []
+	listToReturn = []
 	champs = db.games.find({"matchMode":"CLASSIC"},{"participants.championId":1,"_id":0})
 	a = 0
 	for i in champs:
 		while a<10:
 			if printChamps == True:
 				print i['participants'][a]['championId']
-			listToOutput.append(i['participants'][a]['championId'])
+			listToReturn.append(i['participants'][a]['championId'])
 			#print a
 			a += 1
 		if a>9:
 			a = 0
-	#print len(listToOutput)
-	return listToOutput
+	#print len(listToReturn)
+	return listToReturn
 	
 """
 This function returns a list of all the wins 
@@ -272,7 +295,7 @@ def highestWinRateChampion(numToList,returnLoosers):
 This function will return a list with all the items bought in the all the games
 """
 def getItems(printItems):
-	listToOutput = []
+	listToReturn = []
 	item0 = db.games.find({"matchMode":"CLASSIC"},{"participants.stats":1,"_id":0})	
 	a = 0
 	for i in item0:
@@ -286,21 +309,21 @@ def getItems(printItems):
 				print "item 4: ",l['item4']
 				print "item 5: ",l['item5']	
 			if l['item0'] != 0:
-				listToOutput.append(l['item0'])
+				listToReturn.append(l['item0'])
 			if l['item1'] != 0:
-				listToOutput.append(l['item1'])
+				listToReturn.append(l['item1'])
 			if l['item2'] != 0:
-				listToOutput.append(l['item2'])
+				listToReturn.append(l['item2'])
 			if l['item3'] != 0:
-				listToOutput.append(l['item3'])
+				listToReturn.append(l['item3'])
 			if l['item4'] != 0:
-				listToOutput.append(l['item4'])
+				listToReturn.append(l['item4'])
 			if l['item5'] != 0:
-				listToOutput.append(l['item5'])
+				listToReturn.append(l['item5'])
 			a += 1
 		if a>9:
 			a = 0
-	return listToOutput	
+	return listToReturn	
 	
 """
 This function will return the most popular items
@@ -320,7 +343,7 @@ def highestWinRateItem():
 	items = db.games.find({"matchMode":"CLASSIC"},{"participants.stats":1,"_id":0})
 	for i in items:
 		a = 0
-		while a<9:
+		while a<10:
 			if i['participants'][a]['stats']['winner'] == True:
 				if i['participants'][a]['stats']['item0'] != 0:
 					winningItems.append(i['participants'][a]['stats']['item0'])
@@ -419,16 +442,16 @@ This function will show if winning players place more wards then loosing players
 1nd value is the average wards placed by a winner
 2rd value is the average wards placed by a looser 
 3st value is True/False (True if winners place more wards, false is looser place more wards)
-## MIGHT NEED TO ADD SOMETHING TO EMPTY LIST "listToOutput" ##
+## MIGHT NEED TO ADD SOMETHING TO EMPTY LIST "listToReturn" ##
 """
 def wardBoughtTrend():
 	winningTeamWards = 0
 	loosingTeamWards = 0
-	listToOutput = []
+	listToReturn = []
 	wardsPlaced = db.games.find({"matchMode":"CLASSIC"},{"participants.stats.visionWardsBoughtInGame":1,"participants.stats.sightWardsBoughtInGame":1,"participants.stats.winner":1,"teams.winner":1,"_id":0})
 	for i in wardsPlaced:
 		a = 0
-		while a<9:
+		while a<10:
 			if i['participants'][a]['stats']['winner'] == True:
 				winningTeamWards = winningTeamWards + i['participants'][a]['stats']['sightWardsBoughtInGame'] + i['participants'][a]['stats']['visionWardsBoughtInGame']
 			else:
@@ -440,14 +463,14 @@ def wardBoughtTrend():
 	#print loosingTeamWards
 	#print winningTeamAvg
 	#print loosingTeamAvg
-	listToOutput.append(winningTeamAvg)
-	listToOutput.append(loosingTeamAvg)
+	listToReturn.append(winningTeamAvg)
+	listToReturn.append(loosingTeamAvg)
 	if winningTeamAvg > loosingTeamAvg:
-		listToOutput.append(True)
-		return listToOutput
+		listToReturn.append(True)
+		return listToReturn
 	elif loosingTeamAvg > winningTeamAvg:
-		listToOutput.append(False)
-		return listToOutput
+		listToReturn.append(False)
+		return listToReturn
 	else:
 		return "There is no difference" #this is very unlikely to happen 
 
@@ -476,31 +499,83 @@ def mostTowersWin():
 		listToReturn.append(winningTeamTowers/1000.0,loosingTeamTowers/1000.0,False)
 
 """
-adds up CS difference and finds out if winning teams had more CS
+adds up CS difference and finds out if winning teams had more CS, this is the Delta difference not difference in actual CS
 """
 def csDiffWin():
-	print ""
+	listToReturn = []
+	csDiff = getCsDiff()
+	if csDiff[0] > csDiff[1]:
+		listToReturn.append((csDiff[0]/10000.0)-csDiff[1]/10000.0)
+		listToReturn.append(True)
+		return listToReturn
+	else:
+		listToReturn.append((csDiff[1]/10000.0)-csDiff[0]/10000.0)
+		listToReturn.append(False)
+		return listToReturn	
 
 """
-adds up the dmg done by each team memeber to get total team dmg and finds out if the winning teams did more dmg
+adds up the dmg done by each team member to get total team dmg and finds out if the winning teams did more dmg. It retruns a list with 3 items:
+1st average winner damage
+2nd average looser damage
+3rd True if winners do more damage, False if looser do more damage
 """
 def dmgDiffWin():
-	print ""
+	listToReturn = []
+	winnerDmg = 0
+	looserDmg = 0
+	damage = db.games.find({"matchMode":"CLASSIC"},{"participants.stats.winner":1,"participants.stats.totalDamageDealtToChampions":1,"_id":0})
+	for i in damage:
+		a = 0
+		while a<10:
+			if i['participants'][a]['stats']['winner'] == True:
+				winnerDmg = winnerDmg + i['participants'][a]['stats']['totalDamageDealtToChampions']
+				#print i['participants'][a]['stats']['totalDamageDealtToChampions']
+			else:
+				looserDmg = looserDmg + i['participants'][a]['stats']['totalDamageDealtToChampions']
+			a += 1
+	listToReturn.append(winnerDmg/10000.0)
+	listToReturn.append(looserDmg/10000.0)
+	if winnerDmg > looserDmg:
+		listToReturn.append(True)
+		return listToReturn
+	else:
+		listToReturn.append(False)
+		return listToReturn
+
 
 """
 adds up gold differences of each player to find team gold then finds if winning teams had more gold
 """	
 def goldDiffWin():
-	print ""
+	listToReturn = []
+	winnerGold = 0
+	looserGold = 0
+	gold = db.games.find({"matchMode":"CLASSIC"},{"participants.stats.winner":1,"participants.stats.goldEarned":1,"_id":0})
+	for i in gold:
+		a = 0
+		while a<10:
+			if i['participants'][a]['stats']['winner'] == True:
+				winnerGold = winnerGold + i['participants'][a]['stats']['goldEarned']
+			else:
+				looserGold = looserGold + i['participants'][a]['stats']['goldEarned']
+			a += 1
+	listToReturn.append(winnerGold/10000)
+	listToReturn.append(looserGold/10000)
+	if winnerGold > looserGold:
+		listToReturn.append(True)
+		return listToReturn
+	else:
+		listToReturn.append(False)
+		return listToReturn
 	
-"""
-This will display all the data in a readable fashion
-"""
-def displayData():
-	print ""	
 
 
-mostTowersWin()
+
+print goldDiffWin()
+
+class display():
+	def displayData():
+		print ""
 
 client.close()
 
