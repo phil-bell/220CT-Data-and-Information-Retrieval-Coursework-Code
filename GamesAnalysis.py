@@ -616,9 +616,9 @@ class display():
 		
 		print "On average winning teams get:"
 		self.mostTowers = massDataAnalsis().mostTowersWin()
-		print self.mostTowers[0]
+		print self.mostTowers[0], "Towers per game"
 		print "loosing teams average:" 
-		print self.mostTowers[1]
+		print self.mostTowers[1], "Towers per game"
 		print "\n \n"
 		
 		print "Teams that get first blood win"
