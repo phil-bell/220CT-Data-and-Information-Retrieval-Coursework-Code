@@ -1,13 +1,9 @@
 from pymongo import MongoClient
-class connection():
-	def connect():
-		client = MongoClient()
-		db = client.lolMatchesDB
-	def diconnect():
-		client.close()
+client = MongoClient()
+db = client.lolMatchesDB
 
 """
-This class was mostly used for test the structure of the data
+This class was mostly used for test the structure of the data, it does not analyse data, only outputs raw data from DB
 """
 class singleDataOutputs():
 	"""
@@ -39,7 +35,6 @@ class singleDataOutputs():
 		for self.i in range(len(self.playerToReturn)):
 			return self.playerToReturn[i],self.winsToRetrun[i]
 
-class massDataAnalsis():
 	"""
 	this function gets the matchId and game winner from the database, it then outputs all the results of each game.
 	"""
@@ -53,85 +48,14 @@ class massDataAnalsis():
 				print "Winner: Team 2"
 	
 	"""
-	This functions will return total of the winners CSdelta and the total of the loosers CSDelta, returns them in a list:
-	1st winners total CS delta
-	2nd looser total CS delfa
-	"""
-	def getCsDiff(self):
-		self.listToReturn = []
-		self.winningCS = 0
-		self.loosingCS = 0
-		self.playersCsDiff = db.games.find({"matchMode":"CLASSIC"},{"participants.timeline.csDiffPerMinDeltas":1,"participants.stats.winner":1,"_id":0})
-		
-		#for i in playersCsDiff:
-			#print i
-		self.b = 0
-		for self.i in self.playersCsDiff:
-			self.a = 0
-			
-			while self.a<10:
-				if self.i['participants'][a]['stats']['winner'] == True:
-					try:
-						self.winningCS = self.winningCS + self.i['participants'][a]['timeline']['csDiffPerMinDeltas']['zeroToTen']
-					except KeyError:
-						pass
-					try:
-						self.winningCS = self.winningCS + self.i['participants'][a]['timeline']['csDiffPerMinDeltas']['tenToTwenty']
-					except KeyError:
-						pass
-					try:
-						self.winningCS = self.winningCS + self.i['participants'][a]['timeline']['csDiffPerMinDeltas']['twentyToThrity']
-					except KeyError:
-						pass
-					try:
-						self.winningCS = self.winningCS + self.i['participants'][a]['timeline']['csDiffPerMinDeltas']['thirtyToEnd']
-					except KeyError:
-						pass	
-				else:
-					try:
-						self.loosingCS = self.loosingCS + self.i['participants'][a]['timeline']['csDiffPerMinDeltas']['zeroToTen']
-					except KeyError:
-						pass
-					try:
-						self.loosingCS = self.loosingCS + self.i['participants'][a]['timeline']['csDiffPerMinDeltas']['tenToTwenty']
-					except KeyError:
-						pass
-					try:
-						self.loosingCS = self.loosingCS + self.i['participants'][a]['timeline']['csDiffPerMinDeltas']['twentyToThrity']
-					except KeyError:
-						pass
-					try:
-						self.loosingCS = self.loosingCS + self.i['participants'][a]['timeline']['csDiffPerMinDeltas']['thirtyToEnd']
-					except KeyError:
-						pass
-				self.a += 1
-				self.b += 1
-		#print b
-		self.listToReturn.append(winningCS)
-		self.listToReturn.append(loosingCS)
-		return self.listToReturn
-	"""
-	this function retrun what position in the list a player is, this is needed beause in the database players and there names are stored in the array participantIdentities but all the stats (champoins, CS, spells, wins/loss) is stored in the participants array so the location in the array is needed to find players stats.
-	"""
-	def getPlayerListNum(self,playerId):
-		self.playerListNum = db.games.find({"participantIdentities.player.summonerId":playerId},{"participantIdentities.player.summonerId":1,"_id":0})
-		for self.i in self.playerListNum:
-			self.a=0
-			for self.a in range(0,9):
-				if self.i['participantIdentities'][a]['player']['summonerId'] == playerId:
-					return self.a
-				self.a += 1
-	
-			#print a
-	"""
 	This function takes a players Id then calls the getPlayerListNum to get its position the array so it can then return the players total damage to champions.
 	"""
 	def getPlayerDmg(self,playerId):
 		self.playerDmg = db.games.find({"participantIdentities.player.summonerId":playerId},{"participants.stats.totalDamageDealtToChampions":1,"_id":0})
 		self.playListNum = getPlayerListNum(playerId)
 		for self.i in self.playerDmg:
-			return self.i['participants'][self.playListNum]['stats']['totalDamageDealtToChampions']
-	
+			return self.i['participants'][self.playListNum]['stats']['totalDamageDealtToChampions']	
+
 	"""
 	This function will return a players estimated position (TOP/MID/DUO_SUPPORT/DUO_CARRY)
 	"""
@@ -155,6 +79,79 @@ class massDataAnalsis():
 					print self.a,":",self.b
 				divider(50)
 			return self.i['participants'][self.pListNum]['stats']
+	
+class massDataAnalsis():
+
+	"""
+	This functions will return total of the winners CSdelta and the total of the loosers CSDelta, returns them in a list:
+	1st winners total CS delta
+	2nd looser total CS delfa
+	"""
+	def getCsDiff(self):
+		self.listToReturn = []
+		self.winningCS = 0
+		self.loosingCS = 0
+		self.playersCsDiff = db.games.find({"matchMode":"CLASSIC"},{"participants.timeline.csDiffPerMinDeltas":1,"participants.stats.winner":1,"_id":0})
+		
+		#for i in playersCsDiff:
+			#print i
+		self.b = 0
+		for self.i in self.playersCsDiff:
+			self.a = 0
+			
+			while self.a<10:
+				if self.i['participants'][self.a]['stats']['winner'] == True:
+					try:
+						self.winningCS = self.winningCS + self.i['participants'][self.a]['timeline']['csDiffPerMinDeltas']['zeroToTen']
+					except KeyError:
+						pass
+					try:
+						self.winningCS = self.winningCS + self.i['participants'][self.a]['timeline']['csDiffPerMinDeltas']['tenToTwenty']
+					except KeyError:
+						pass
+					try:
+						self.winningCS = self.winningCS + self.i['participants'][self.a]['timeline']['csDiffPerMinDeltas']['twentyToThrity']
+					except KeyError:
+						pass
+					try:
+						self.winningCS = self.winningCS + self.i['participants'][self.a]['timeline']['csDiffPerMinDeltas']['thirtyToEnd']
+					except KeyError:
+						pass	
+				else:
+					try:
+						self.loosingCS = self.loosingCS + self.i['participants'][self.a]['timeline']['csDiffPerMinDeltas']['zeroToTen']
+					except KeyError:
+						pass
+					try:
+						self.loosingCS = self.loosingCS + self.i['participants'][self.a]['timeline']['csDiffPerMinDeltas']['tenToTwenty']
+					except KeyError:
+						pass
+					try:
+						self.loosingCS = self.loosingCS + self.i['participants'][self.a]['timeline']['csDiffPerMinDeltas']['twentyToThrity']
+					except KeyError:
+						pass
+					try:
+						self.loosingCS = self.loosingCS + self.i['participants'][self.a]['timeline']['csDiffPerMinDeltas']['thirtyToEnd']
+					except KeyError:
+						pass
+				self.a += 1
+				self.b += 1
+		#print b
+		self.listToReturn.append(self.winningCS)
+		self.listToReturn.append(self.loosingCS)
+		return self.listToReturn
+	"""
+	this function retrun what position in the list a player is, this is needed beause in the database players and there names are stored in the array participantIdentities but all the stats (champoins, CS, spells, wins/loss) is stored in the participants array so the location in the array is needed to find players stats.
+	"""
+	def getPlayerListNum(self,playerId):
+		self.playerListNum = db.games.find({"participantIdentities.player.summonerId":playerId},{"participantIdentities.player.summonerId":1,"_id":0})
+		for self.i in self.playerListNum:
+			self.a=0
+			for self.a in range(0,9):
+				if self.i['participantIdentities'][a]['player']['summonerId'] == playerId:
+					return self.a
+				self.a += 1
+	
 	
 	"""
 	This function will return the average player damage for each position, it must be handed the desired postion(TOP/MID/DUO_SUPPORT/DUO_CARRY). ##THIS IS NOT FINHSED##
@@ -236,9 +233,9 @@ class massDataAnalsis():
 	"""
 	This function will return most common position in each role. IMPORTANT: item is returned is a list with only 1 item
 	"""
-	def mostCommonChamp(self):
-		self.champs = getChampions(False)
-		self.toReturn = findMostCommon(self.champs,1)
+	def mostCommonChamp(self,numToOutput):
+		self.champs = massDataAnalsis().getChampions(False)
+		self.toReturn = massDataAnalsis().findMostCommon(self.champs,numToOutput)
 		return self.toReturn
 	
 	"""
@@ -266,7 +263,7 @@ class massDataAnalsis():
 				self.a[self.i] += 1
 			else:
 				self.a[self.i] = 1
-		self.mostCommon = sorted(self.a, key = a.get, reverse = True)
+		self.mostCommon = sorted(self.a, key = self.a.get, reverse = True)
 		return self.mostCommon[:numToOutput]	
 		
 	"""
@@ -275,19 +272,19 @@ class massDataAnalsis():
 	def highestWinRateChampion(self,numToList,returnLoosers):
 		self.onlyWinners = []
 		self.onlyLoosers = []
-		self.champsList = getChampions(False)
-		self.winList = getWinList()
-		print len(self.winList)
-		print len(self.champsList)
-		print self.winList[5]
+		self.champsList = massDataAnalsis().getChampions(False)
+		self.winList = massDataAnalsis().getWinList()
+		#print len(self.winList)
+		#print len(self.champsList)
+		#print self.winList[5]
 		for i in range (0,10000):
 			if self.winList[i] == True:
 				self.onlyWinners.append(self.champsList[i])
 			else:
 				self.onlyLoosers.append(self.champsList[i])
-		self.mostCommonWinner = findMostCommon(self.onlyWinners,numToList)
-		if self.returnLoosers == True:
-			self.mostCommonLooser = findMostCommon(self.onlyLoosers,numToList)
+		self.mostCommonWinner = massDataAnalsis().findMostCommon(self.onlyWinners,numToList)
+		if returnLoosers == True:
+			self.mostCommonLooser = massDataAnalsis().findMostCommon(self.onlyLoosers,numToList)
 			return self.mostCommonLooser
 		return self.mostCommonWinner
 		
@@ -309,17 +306,17 @@ class massDataAnalsis():
 					print "item 4: ",l['item4']
 					print "item 5: ",l['item5']	
 				if self.l['item0'] != 0:
-					self.listToReturn.append(l['item0'])
+					self.listToReturn.append(self.l['item0'])
 				if self.l['item1'] != 0:
-					self.listToReturn.append(l['item1'])
+					self.listToReturn.append(self.l['item1'])
 				if self.l['item2'] != 0:
-					self.listToReturn.append(l['item2'])
+					self.listToReturn.append(self.l['item2'])
 				if self.l['item3'] != 0:
-					self.listToReturn.append(l['item3'])
+					self.listToReturn.append(self.l['item3'])
 				if self.l['item4'] != 0:
-					self.listToReturn.append(l['item4'])
+					self.listToReturn.append(self.l['item4'])
 				if self.l['item5'] != 0:
-					self.listToReturn.append(l['item5'])
+					self.listToReturn.append(self.l['item5'])
 				self.a += 1
 			if self.a>9:
 				self.a = 0
@@ -329,23 +326,23 @@ class massDataAnalsis():
 	This function will return the most popular items
 	"""
 	def mostCommonItem(self,numToList):
-		self.items = self.getItems(False)
+		self.items = massDataAnalsis().getItems(False)
 		
-		self.mostCommon = findMostCommon(self.items,numToList)
+		self.mostCommon = massDataAnalsis().findMostCommon(self.items,numToList)
 		return self.mostCommon
 		
 	"""
 	Finds what items have the highers win rate, ignores trinkets becuase everone gets them
-	## FINISH THIS ##
+	must be haned bool winnerOrLoosers, True to retrun best items False to return worst items
 	"""
-	def highestWinRateItem(self):
+	def highestWinRateItem(self,winnersOrLoosers):
 		self.winningItems = []
 		self.loosingItems = []
 		self.items = db.games.find({"matchMode":"CLASSIC"},{"participants.stats":1,"_id":0})
 		for self.i in self.items:
 			self.a = 0
 			while self.a<10:
-				if i['participants'][self.a]['stats']['winner'] == True:
+				if self.i['participants'][self.a]['stats']['winner'] == True:
 					if self.i['participants'][self.a]['stats']['item0'] != 0:
 						self.winningItems.append(self.i['participants'][self.a]['stats']['item0'])
 					if self.i['participants'][self.a]['stats']['item1'] != 0:
@@ -372,10 +369,14 @@ class massDataAnalsis():
 					if self.i['participants'][self.a]['stats']['item5'] != 0:
 						self.loosingItems.append(self.i['participants'][self.a]['stats']['item5'])
 				self.a += 1
-		self.bestItems = self.findMostCommon(self.winningItems,6)
-		self.worstItems = self.findMostCommon(self.loosingItems,6)
-		print self.bestItems
-		print self.worstItems
+		self.bestItems = massDataAnalsis().findMostCommon(self.winningItems,6)
+		self.worstItems = massDataAnalsis().findMostCommon(self.loosingItems,6)
+		if winnersOrLoosers == True:
+			return self.bestItems
+		elif winnersOrLoosers == False:
+			return self.worstItems
+		else:
+			return "highestWinRateItem must be hanned a boolean"
 		
 		
 	"""
@@ -384,7 +385,7 @@ class massDataAnalsis():
 	"teams.firstBlood","firstBlood",False
 	"teams.firstBaron","firstBaron",False
 	"teams.firstDragon","firstDragon",False
-	"teams.firsTower","firstTower",False
+	"teams.firstTower","firstTower",False
 	"teams.firstInhibitor","firstInhibitor",False
 	"""
 	def firstObjectiveTemplate(self,obLoc,ob,outputTF):
@@ -414,11 +415,7 @@ class massDataAnalsis():
 				self.totalWinObFalse = self.totalWinObFalse + 1
 		#print totalWinObTrue		
 		#print totalWinObFalse
-		if self.totalWinObTrue>self.totalWinObFalse:
-			return True
-		else:
-			return False	
-	
+		return self.totalWinObTrue/10.0
 	"""
 	This function will find what bans coralate with winning
 	"""
@@ -434,9 +431,9 @@ class massDataAnalsis():
 					self.l = self.i['teams'][0]['bans'][self.a]['championId']
 				else:
 					self.l = self.i['teams'][1]['bans'][self.a]['championId']
-				self.winBanList.append(l)
+				self.winBanList.append(self.l)
 				self.a +=1
-		return findMostCommon(self.winBanList,3)
+		return massDataAnalsis().findMostCommon(self.winBanList,3)
 		
 	"""
 	This function will show if winning players place more wards then loosing players, it retruns a list:
@@ -454,9 +451,9 @@ class massDataAnalsis():
 			self.a = 0
 			while self.a<10:
 				if self.i['participants'][self.a]['stats']['winner'] == True:
-					self.winningTeamWards = self.winningTeamWards + i['participants'][self.a]['stats']['sightWardsBoughtInGame'] + self.i['participants'][self.a]['stats']['visionWardsBoughtInGame']
+					self.winningTeamWards = self.winningTeamWards + self.i['participants'][self.a]['stats']['sightWardsBoughtInGame'] + self.i['participants'][self.a]['stats']['visionWardsBoughtInGame']
 				else:
-					self.loosingTeamWards = self.loosingTeamWards + i['participants'][self.a]['stats']['sightWardsBoughtInGame'] + self.i['participants'][self.a]['stats']['visionWardsBoughtInGame']
+					self.loosingTeamWards = self.loosingTeamWards + self.i['participants'][self.a]['stats']['sightWardsBoughtInGame'] + self.i['participants'][self.a]['stats']['visionWardsBoughtInGame']
 				self.a += 1
 		self.winningTeamAvg = self.winningTeamWards/1000.0
 		self.loosingTeamAvg = self.loosingTeamWards/1000.0
@@ -494,17 +491,19 @@ class massDataAnalsis():
 			else:
 				self.winningTeamTowers = self.winningTeamTowers + self.i['teams'][1]['towerKills']
 				self.loosingTeamTowers = self.loosingTeamTowers + self.i['teams'][0]['towerKills']
+		self.listToReturn.append(self.winningTeamTowers/1000.0)
+		self.listToReturn.append(self.loosingTeamTowers/1000.0)
 		if self.winningTeamTowers>self.loosingTeamTowers:
-			self.listToReturn.append(self.winningTeamTowers/1000.0,self.loosingTeamTowers/1000.0,True)
+			self.listToReturn.append(True)
 		else:
-			self.listToReturn.append(self.winningTeamTowers/1000.0,self.loosingTeamTowers/1000.0,False)
-	
+			self.listToReturn.append(False)
+		return self.listToReturn
 	"""
 	adds up CS difference and finds out if winning teams had more CS, this is the Delta difference not difference in actual CS
 	"""
 	def csDiffWin(self):
 		self.listToReturn = []
-		self.csDiff = getCsDiff()
+		self.csDiff = massDataAnalsis().getCsDiff()
 		if self.csDiff[0] > self.csDiff[1]:
 			self.listToReturn.append((self.csDiff[0]/10000.0)-self.csDiff[1]/10000.0)
 			self.listToReturn.append(True)
@@ -560,8 +559,8 @@ class massDataAnalsis():
 				else:
 					self.looserGold = self.looserGold + self.i['participants'][self.a]['stats']['goldEarned']
 				self.a += 1
-		self.listToReturn.append(winnerGold/10000)
-		self.listToReturn.append(looserGold/10000)
+		self.listToReturn.append(self.winnerGold/10000)
+		self.listToReturn.append(self.looserGold/10000)
 		if self.winnerGold > self.looserGold:
 			self.listToReturn.append(True)
 			return self.listToReturn
@@ -571,8 +570,6 @@ class massDataAnalsis():
 			
 
 class display():
-	
-
 	"""
 	this functions prints out a divider made "=" for the length it is handed.
 	"""
@@ -585,11 +582,103 @@ class display():
 	This will display all the data in a readable fashion
 	"""
 	def displayData(self):
-		print ""
-
-
-
-
-"""
-abcdefghijklmnopqrst
-"""
+		display().divider(50)
+		
+		#CHAMPION STATS
+		print "CHAMPION ANALYTICS"
+		print "Most common champions"
+		self.mostUsedChamps = massDataAnalsis().mostCommonChamp(5)
+		print self.mostUsedChamps
+		print "\n \n"
+		
+		print "Highest winrate champions:"
+		self.bestChamps = massDataAnalsis().highestWinRateChampion(5,True)
+		print self.bestChamps
+		
+		display().divider(50)
+		
+		#ITEM STATS
+		print "ITEM ANALYTICS"
+		
+		self.mostUsedItems = massDataAnalsis().mostCommonItem(6)
+		print "Most used items"
+		print self.mostUsedItems
+		print "\n \n"
+		
+		print "Highest win rate items"
+		self.mostWinItems = massDataAnalsis().highestWinRateItem(True)
+		print self.mostWinItems
+		 
+		display().divider(50)
+		
+		#OBJECTIVE STATS
+		print "OBJECTIVE ANALYTICS"
+		
+		print "On average winning teams get:"
+		self.mostTowers = massDataAnalsis().mostTowersWin()
+		print self.mostTowers[0]
+		print "loosing teams average:" 
+		print self.mostTowers[1]
+		print "\n \n"
+		
+		print "Teams that get first blood win"
+		self.firstBlood = massDataAnalsis().firstObjectiveTemplate("teams.firstBlood","firstBlood",False)
+		print self.firstBlood,"% of the time " 
+		print "\n \n"
+		
+		print "Teams that get first dragon win"
+		self.firstDrag = massDataAnalsis().firstObjectiveTemplate("teams.firstDragon","firstDragon",False)
+		print self.firstDrag, "% of the time"
+		print "\n \n"
+		
+		print "Teams that get first baron win"
+		self.firstBaron = massDataAnalsis().firstObjectiveTemplate("teams.firstBaron","firstBaron",False)
+		print self.firstBaron, "% of the time"
+		print "\n \n"
+		
+		print "Teams that get the first tower win"
+		self.firstTower = massDataAnalsis().firstObjectiveTemplate("teams.firstTower","firstTower",False)
+		print self.firstTower, "% of the time"
+		print "\n \n"
+		
+		print "Teams that get the first inhibitor win"
+		self.firstInhib = massDataAnalsis().firstObjectiveTemplate("teams.firstInhibitor","firstInhibitor",False)
+		print self.firstInhib, "% of the time"
+				
+		display().divider(50)
+		
+		#PLAYER STATS
+		print "PLAYER ANALYTICS"
+		
+		print "A winning player gets an averge of"
+		self.csWin = massDataAnalsis().csDiffWin()
+		print self.csWin[0], "more creep score per minute"
+		print "\n \n"
+		
+		print "A winning player on average does"
+		self.dmgWin = massDataAnalsis().dmgDiffWin()
+		print self.dmgWin[0]-self.dmgWin[1], "more damage then a looser"
+		print "\n \n"
+				
+		print "A winning player on average has"
+		self.goldWin = massDataAnalsis().goldDiffWin()
+		print self.goldWin[0], "more gold then a loosing player"
+		
+		display().divider(50)
+		
+		#TEAM STATS
+		print "TEAM ANALYTICS"
+		
+		print "Highest winrate ban:"
+		self.bestBans = massDataAnalsis().winningBans()
+		print self.bestBans
+		print "\n \n"
+		
+		print "Winning teams place"
+		self.winWardPlaced = massDataAnalsis().wardBoughtTrend()
+		print self.winWardPlaced[0] - self.winWardPlaced[1], "more wards, or", ((self.winWardPlaced[0]/self.winWardPlaced[1])*100)-100, "% more"
+		
+		display().divider(50)
+		
+go = display().displayData()
+client.close()
