@@ -85,4 +85,5 @@ Winning teams place
 ```
 Numbers returned by the program correspond with champion and item IDs in the game, to find there meaning please visit Riots [Data Dragon Tool](http://ddragon.leagueoflegends.com/tool/)
 For example `222` represents the champion Jinx:
+
 ![alt tag](https://github.com/philhabell/220CT-Data-and-Information-Retrieval-Coursework-Code/blob/master/jinx.PNG)

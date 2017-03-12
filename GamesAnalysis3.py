@@ -592,8 +592,8 @@ class display():
 		print("\n \n")
 		
 		print("Highest winrate champions:")
-		self.bestChamps = massDataAnalsis().highestWinRateChampion(5,True)
-		print(self.bestChamps)
+		#self.bestChamps = massDataAnalsis().highestWinRateChampion(5,True)
+		#print(self.bestChamps)
 		
 		display().divider(50)
 		
