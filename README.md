@@ -88,3 +88,9 @@ Numbers returned by the program correspond with champion and item IDs in the gam
 For example `222` represents the champion Jinx:
 
 ![alt tag](https://github.com/philhabell/220CT-Data-and-Information-Retrieval-Coursework-Code/blob/master/jinx.PNG)
+
+## Licence
+Copyright (C) 2017 Philip Bell - All Rights Reserved
+Unauthorized copying of this file, via any medium is strictly prohibited
+Proprietary and confidential
+Written by Philip Bell <philhabell@gmail.com>, March 2017
